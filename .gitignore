@@ -1,0 +1,10 @@
+/.venv
+
+# El audio no se versiona: pesa mucho y no es nuestro
+canciones/*.mp3
+canciones/*.ogg
+
+# Los .lrc SI se versionan: son trabajo tuyo y ocupan nada
+
+# Basura de Python
+__pycache__/
