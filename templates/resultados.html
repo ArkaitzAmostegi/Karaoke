@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cantar</title>
+</head>
+<body>
+    <h1>Versiones de {{ cancion }}</h1>
+    <ul>
+        {% for c in candidatos %}
+        <li>{{ c.albumName }} — {{ c.duration }} segundos</li>
+        {% endfor %}
+    </ul>
+    <a href="{{url_for('portada')}}">Volver</a>
+</body>
+</html>

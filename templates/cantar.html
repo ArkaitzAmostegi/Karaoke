@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cantar</title>
+</head>
+<body>
+    <h2>Canción: </h2>
+    <h3>{{cancion}}</h3>
+    {% for linea in lineas %}
+    <h4>{{ linea.texto }}</h4>
+    {% endfor %}
+    <audio controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+    <br>
+    <a href="{{url_for('portada')}}">Volver</a>
+</body>
+</html>
