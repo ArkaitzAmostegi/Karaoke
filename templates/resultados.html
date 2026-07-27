@@ -9,6 +9,7 @@
     <h1>Versiones de {{ cancion }}</h1>
     <ul>
         {% for c in candidatos %}
+        <a href="{{ url_for('usar_letra', cancion_id=cancion, lrclib_id=c.id) }}">Usar esta</a>
         <li>{{ c.albumName }} — {{ c.duration }} segundos</li>
         {% endfor %}
     </ul>

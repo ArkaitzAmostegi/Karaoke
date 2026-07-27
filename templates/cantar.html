@@ -11,8 +11,28 @@
     {% for linea in lineas %}
     <h4>{{ linea.texto }}</h4>
     {% endfor %}
-    <audio controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+    <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+    <p id="reloj">0</p>
     <br>
     <a href="{{url_for('portada')}}">Volver</a>
 </body>
+<script>
+    const audio = document.getElementById("reproductor");
+    const reloj = document.getElementById("reloj");
+    const LINEAS = {{ lineas | tojson }};
+    console.log(LINEAS.length);
+
+    audio.addEventListener("timeupdate", function () {
+        reloj.textContent = audio.currentTime.toFixed(2);
+        let valor = null;
+        for(i=0;i<LINEAS.length;i++){
+            if(LINEAS[i].tiempo<= (audio.currentTime+3)){
+                valor = LINEAS[i];
+            }
+        }
+        if (valor){
+            console.log(valor.texto)
+        }
+    });
+</script>
 </html>

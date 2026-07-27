@@ -1,4 +1,4 @@
-from flask import Flask, render_template,send_from_directory
+from flask import Flask, render_template,send_from_directory, redirect, url_for
 from pathlib import Path
 from lrclib import buscar, descargar
 
@@ -64,6 +64,14 @@ def editar(cancion_id):
 def buscar_letra(cancion_id):
     candidatos = buscar(cancion_id.replace("-", " "))
     return render_template("resultados.html", cancion=cancion_id, candidatos=candidatos)
+
+@app.route("/usar/<cancion_id>/<int:lrclib_id>")
+def usar_letra(cancion_id, lrclib_id):
+    datos = descargar(lrclib_id)
+    ruta = CANCIONES / f"{cancion_id}.lrc"
+    ruta.write_text(datos["syncedLyrics"], encoding="utf-8")
+
+    return redirect(url_for("cantar", cancion_id=cancion_id))
 
 
 if __name__ == "__main__":
