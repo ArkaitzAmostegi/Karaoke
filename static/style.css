@@ -1,0 +1,111 @@
+:root {
+            --fondo:   #080711;
+            --acento:  #ffc24d;
+            --proxima: #737dA0;
+            --pasada:  #2b3050;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { height: 100%; }
+
+        body {
+            margin: 0;
+            overflow: hidden;                 /* la pagina no se mueve; se mueve la letra */
+            display: flex;
+            flex-direction: column;
+            font-family: "Segoe UI", system-ui, sans-serif;
+            color: #fff;
+            background:
+                radial-gradient(ellipse 120% 80% at 50% -15%, #2e1c5c 0%, transparent 62%),
+                radial-gradient(ellipse 110% 60% at 50% 115%, #0e2b52 0%, transparent 60%),
+                var(--fondo);
+        }
+
+        /* ---------- cabecera ---------- */
+        header {
+            flex: 0 0 auto;
+            text-align: center;
+            padding: 1.4rem 1rem .4rem;
+        }
+        header .titulo {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: #8b93b5;
+        }
+
+        /* ---------- la letra ---------- */
+        main {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            text-align: center;
+            padding: 34vh 6vw;                /* para que la 1a y la ultima puedan centrarse */
+            perspective: 900px;               /* <- esto es lo que crea la profundidad 3D */
+            perspective-origin: 50% 45%;
+            scrollbar-width: none;
+        }
+        main::-webkit-scrollbar { display: none; }
+
+        /* estado por defecto = ya cantada: hundida, apagada y desenfocada */
+        .linea {
+            margin: 0 0 1.6rem;
+            font-size: 1.9rem;
+            font-weight: 600;
+            line-height: 1.25;
+            color: var(--pasada);
+            opacity: .5;
+            filter: blur(1.3px);
+            transform: translateZ(-170px) scale(.92);
+            transition: transform .45s cubic-bezier(.22,.61,.36,1),
+                        color .35s, opacity .35s, filter .35s, text-shadow .35s;
+        }
+
+        /* las que vienen despues de la actual = aun por cantar */
+        .linea.actual ~ .linea {
+            color: var(--proxima);
+            opacity: .85;
+            filter: blur(.4px);
+            transform: translateZ(-90px) scale(.96);
+        }
+
+        /* la que toca AHORA: se adelanta hacia ti y se enciende */
+        .linea.actual {
+            color: var(--acento);
+            opacity: 1;
+            filter: none;
+            transform: translateZ(70px) scale(1);
+            text-shadow: 0 0 26px rgba(255,194,77,.55),
+                        0 0 70px rgba(255,140,60,.28);
+        }
+
+        /* ---------- pie con los controles ---------- */
+        footer {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 1rem 1.2rem 1.5rem;
+            background: linear-gradient(to top, rgba(8,7,17,.96) 40%, transparent);
+        }
+        audio {
+            height: 40px;
+            filter: invert(.92) hue-rotate(190deg) saturate(.35);
+        }
+        footer a {
+            color: #8b93b5;
+            text-decoration: none;
+            font-size: .85rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+        footer a:hover { color: #fff; }
+        #reloj {
+            margin: 0;
+            font-size: .75rem;
+            color: #4a5170;
+            font-variant-numeric: tabular-nums;
+        }

@@ -48,8 +48,11 @@ def leer_letra(cancion_id):
         sello = linea[1:cierre]
         letra = linea[cierre+1:]
         minutos, segundos = sello.split(":")
-        tiempo = (int(minutos)*60) + float(segundos)
-        lineas.append({"tiempo":tiempo, "texto":letra})
+        try:
+            tiempo = (int(minutos)*60) + float(segundos)
+            lineas.append({"tiempo":tiempo, "texto":letra})
+        except ValueError:
+            continue
 
     return (lineas)
 

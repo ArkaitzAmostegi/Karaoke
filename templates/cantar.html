@@ -3,36 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cantar</title>
+    <title>{{ cancion }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>Canción: </h2>
-    <h3>{{cancion}}</h3>
-    {% for linea in lineas %}
-    <h4>{{ linea.texto }}</h4>
-    {% endfor %}
-    <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
-    <p id="reloj">0</p>
-    <br>
-    <a href="{{url_for('portada')}}">Volver</a>
-</body>
+
+    <header>
+        <p class="titulo">{{ cancion }}</p>
+    </header>
+
+    <main>
+        {% for linea in lineas %}
+        <h4 class="linea">{{ linea.texto }}</h4>
+        {% endfor %}
+    </main>
+
+    <footer>
+        <a href="{{ url_for('portada') }}">Volver</a>
+        <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+        <p id="reloj">0</p>
+    </footer>
+
 <script>
     const audio = document.getElementById("reproductor");
     const reloj = document.getElementById("reloj");
+    const ELEMENTOS = document.querySelectorAll(".linea");
     const LINEAS = {{ lineas | tojson }};
-    console.log(LINEAS.length);
+
+    let anterior = -1;                       // que linea estaba marcada en el tic anterior
 
     audio.addEventListener("timeupdate", function () {
         reloj.textContent = audio.currentTime.toFixed(2);
-        let valor = null;
-        for(i=0;i<LINEAS.length;i++){
-            if(LINEAS[i].tiempo<= (audio.currentTime+3)){
-                valor = LINEAS[i];
+
+        let indice = -1;
+        for (let i = 0; i < LINEAS.length; i++) {
+            if (LINEAS[i].tiempo <= (audio.currentTime + 1)) {
+                indice = i;
             }
         }
-        if (valor){
-            console.log(valor.texto)
+
+        for (let j = 0; j < ELEMENTOS.length; j++) {
+            ELEMENTOS[j].classList.toggle("actual", j === indice);
+        }
+
+        // solo mover la pantalla cuando CAMBIA de linea, no en cada tic
+        if (indice !== anterior) {
+            anterior = indice;
+            if (indice >= 0) {
+                ELEMENTOS[indice].scrollIntoView({ block: "center", behavior: "smooth" });
+            }
         }
     });
 </script>
+</body>
 </html>
