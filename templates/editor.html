@@ -1,12 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor</title>
+    <title>Editar {{ cancion }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <h1>{{ cancion }}</h1>
-    <a href="{{ url_for('buscar_letra', cancion_id=cancion) }}">Buscar letra en internet</a>
+<body class="pagina">
+    <div class="contenedor">
+
+        <p class="marca">Editor de letra</p>
+        <h1 class="titulo-pagina">{{ cancion }}</h1>
+
+        <p class="seccion">Traer una letra nueva</p>
+        <div class="panel">
+            <p class="pista" style="margin-bottom:.9rem">
+                Busca la letra ya sincronizada en lrclib. O editala directamente en el editor, mientras la escuchas.
+            </p>
+            <div class="buttons">
+                <a class="boton oro" href="{{ url_for('buscar_letra', cancion_id=cancion) }}">Buscar en internet</a>
+                <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+            </div>
+        </div>
+
+        <p class="seccion">Corregir la que está</p>
+        <form action="" method="POST" class="panel">
+            <textarea name="letra" id="textarea" spellcheck="false">{{ texto }}</textarea>
+            <div class="acciones">
+                <button class="boton primario" type="submit">Guardar</button>
+                <span class="pista">
+                    Formato <code>[mm:ss.cc]texto</code>. Si va adelantada, súbele los segundos a todas.
+                </span>
+            </div>
+        </form>
+
+        <a class="volver" href="{{ url_for('portada') }}">← Volver</a>
+
+    </div>
 </body>
 </html>

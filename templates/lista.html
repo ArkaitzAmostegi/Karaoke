@@ -3,17 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Canciones</title>
+    <title>Karaoke Aramar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <h1>Lista de canciones</h1>
-    <ul>
-        {% for c in canciones %}
-        <li>
-            <a href="{{ url_for('cantar', cancion_id=c) }}">{{ c }}</a>
-            <a href="{{ url_for('editar', cancion_id=c) }}">Sincronizar</a>
-        </li>
-        {% endfor %}
-    </ul>
+<body class="pagina">
+    <div class="contenedor">
+
+        <p class="marca">Karaoke - Aramar</p>
+        <h1 class="titulo-pagina">Elige tu <span class="destacado">canción</span></h1>
+
+        {% if not canciones %}
+        <p class="vacio">
+            No hay ninguna canción todavía.<br>
+            Mete un <code>.mp3</code> en la carpeta <code>canciones/</code> y recarga.
+        </p>
+        {% else %}
+        <ul class="lista">
+            {% for c in canciones %}
+            <li class="tarjeta">
+                <span class="nombre">{{ c }}</span>
+                <a class="boton primario" href="{{ url_for('cantar', cancion_id=c) }}">Cantar</a>
+                <a class="boton fantasma" href="{{ url_for('editar', cancion_id=c) }}">Editar letra</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+    </div>
 </body>
 </html>

@@ -1,111 +1,359 @@
+/* =========================================================
+   KARAOKE ARAMAR — hoja de estilos unica
+   Dos modos, segun la clase del <body>:
+     body.escenario  -> la pantalla de cantar (pantalla completa, 3D, sin scroll)
+     body.pagina     -> el resto (portada, editor, versiones)
+   ========================================================= */
+
 :root {
-            --fondo:   #080711;
-            --acento:  #ffc24d;
-            --proxima: #737dA0;
-            --pasada:  #2b3050;
-        }
+    --fondo:    #07060f;
+    --acento:   #ffc24d;   /* ambar: la linea que toca, acciones principales */
+    --acento-2: #ff4d8d;   /* magenta: cantar */
+    --proxima:  #737da0;
+    --pasada:   #2b3050;
+    --texto:    #eceffb;
+    --tenue:    #8b93b5;
+    --linea:    rgba(255, 255, 255, .09);
+    --panel:    rgba(255, 255, 255, .045);
+}
 
-        * { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
-        html, body { height: 100%; }
+html, body { height: 100%; }
 
-        body {
-            margin: 0;
-            overflow: hidden;                 /* la pagina no se mueve; se mueve la letra */
-            display: flex;
-            flex-direction: column;
-            font-family: "Segoe UI", system-ui, sans-serif;
-            color: #fff;
-            background:
-                radial-gradient(ellipse 120% 80% at 50% -15%, #2e1c5c 0%, transparent 62%),
-                radial-gradient(ellipse 110% 60% at 50% 115%, #0e2b52 0%, transparent 60%),
-                var(--fondo);
-        }
+body {
+    margin: 0;
+    color: var(--texto);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background:
+        radial-gradient(ellipse 120% 80% at 50% -15%, #321d63 0%, transparent 62%),
+        radial-gradient(ellipse 110% 60% at 50% 115%, #0e2b52 0%, transparent 60%),
+        var(--fondo);
+    background-attachment: fixed;
+}
 
-        /* ---------- cabecera ---------- */
-        header {
-            flex: 0 0 auto;
-            text-align: center;
-            padding: 1.4rem 1rem .4rem;
-        }
-        header .titulo {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: .3em;
-            text-transform: uppercase;
-            color: #8b93b5;
-        }
+a { color: inherit; }
 
-        /* ---------- la letra ---------- */
-        main {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            text-align: center;
-            padding: 34vh 6vw;                /* para que la 1a y la ultima puedan centrarse */
-            perspective: 900px;               /* <- esto es lo que crea la profundidad 3D */
-            perspective-origin: 50% 45%;
-            scrollbar-width: none;
-        }
-        main::-webkit-scrollbar { display: none; }
+/* =========================================================
+   1. PAGINAS NORMALES  (body class="pagina")
+   ========================================================= */
 
-        /* estado por defecto = ya cantada: hundida, apagada y desenfocada */
-        .linea {
-            margin: 0 0 1.6rem;
-            font-size: 1.9rem;
-            font-weight: 600;
-            line-height: 1.25;
-            color: var(--pasada);
-            opacity: .5;
-            filter: blur(1.3px);
-            transform: translateZ(-170px) scale(.92);
-            transition: transform .45s cubic-bezier(.22,.61,.36,1),
-                        color .35s, opacity .35s, filter .35s, text-shadow .35s;
-        }
+body.pagina {
+    overflow-y: auto;
+    padding: 3.5rem 1.25rem 4rem;
+}
 
-        /* las que vienen despues de la actual = aun por cantar */
-        .linea.actual ~ .linea {
-            color: var(--proxima);
-            opacity: .85;
-            filter: blur(.4px);
-            transform: translateZ(-90px) scale(.96);
-        }
+.contenedor {
+    max-width: 780px;
+    margin: 0 auto;
+}
 
-        /* la que toca AHORA: se adelanta hacia ti y se enciende */
-        .linea.actual {
-            color: var(--acento);
-            opacity: 1;
-            filter: none;
-            transform: translateZ(70px) scale(1);
-            text-shadow: 0 0 26px rgba(255,194,77,.55),
-                        0 0 70px rgba(255,140,60,.28);
-        }
+.marca {
+    margin: 0 0 .3rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .38em;
+    text-transform: uppercase;
+    color: var(--tenue);
+}
 
-        /* ---------- pie con los controles ---------- */
-        footer {
-            flex: 0 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            padding: 1rem 1.2rem 1.5rem;
-            background: linear-gradient(to top, rgba(8,7,17,.96) 40%, transparent);
-        }
-        audio {
-            height: 40px;
-            filter: invert(.92) hue-rotate(190deg) saturate(.35);
-        }
-        footer a {
-            color: #8b93b5;
-            text-decoration: none;
-            font-size: .85rem;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-        }
-        footer a:hover { color: #fff; }
-        #reloj {
-            margin: 0;
-            font-size: .75rem;
-            color: #4a5170;
-            font-variant-numeric: tabular-nums;
-        }
+.titulo-pagina {
+    margin: 0 0 2.2rem;
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+}
+.titulo-pagina .destacado {
+    background: linear-gradient(92deg, var(--acento) 0%, var(--acento-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.seccion {
+    margin: 0 0 .9rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--tenue);
+}
+
+/* ---------- tarjetas (canciones y versiones) ---------- */
+
+.lista {
+    list-style: none;
+    margin: 0 0 2.5rem;
+    padding: 0;
+    display: grid;
+    gap: .7rem;
+}
+
+.tarjeta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    background: var(--panel);
+    border: 1px solid var(--linea);
+    border-radius: 14px;
+    transition: transform .18s ease, background .18s, border-color .18s;
+}
+.tarjeta:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, .075);
+    border-color: rgba(255, 194, 77, .35);
+}
+
+.tarjeta .nombre {
+    flex: 1;
+    min-width: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+.tarjeta .meta {
+    flex: 1;
+    min-width: 0;
+    color: var(--tenue);
+    font-size: .9rem;
+}
+.tarjeta .meta strong {
+    display: block;
+    color: var(--texto);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* ---------- botones ---------- */
+
+.boton {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .55rem 1.1rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font: inherit;
+    font-size: .85rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter .15s, background .15s, border-color .15s, color .15s;
+}
+.boton:hover { filter: brightness(1.12); }
+
+.boton.primario {
+    background: linear-gradient(100deg, var(--acento-2), #ff7a4d);
+    color: #fff;
+}
+.boton.oro {
+    background: var(--acento);
+    color: #241a06;
+}
+.boton.fantasma {
+    border-color: var(--linea);
+    color: var(--tenue);
+    background: transparent;
+}
+.boton.fantasma:hover {
+    border-color: var(--tenue);
+    color: var(--texto);
+}
+
+.volver {
+    display: inline-block;
+    margin-top: 1.5rem;
+    color: var(--tenue);
+    font-size: .8rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+.volver:hover { color: var(--texto); }
+
+.vacio {
+    color: var(--tenue);
+    line-height: 1.7;
+}
+
+/* ---------- editor ---------- */
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    padding: 1.35rem;
+    background: var(--panel);
+    border: 1px solid var(--linea);
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+}
+.buttons{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+#textarea {
+    display: block;
+    width: 100%;
+    height: 55vh;
+    padding: 1rem 1.1rem;
+    background: rgba(0, 0, 0, .35);
+    color: var(--texto);
+    border: 1px solid var(--linea);
+    border-radius: 12px;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: .92rem;
+    line-height: 1.75;
+    resize: vertical;
+    white-space: pre;        /* sin corte de linea: cada linea del .lrc, una linea */
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+#textarea:focus {
+    outline: none;
+    border-color: rgba(255, 194, 77, .5);
+    box-shadow: 0 0 0 3px rgba(255, 194, 77, .12);
+}
+
+.acciones {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.pista {
+    color: var(--tenue);
+    font-size: .82rem;
+    margin: .1rem 0 0;
+}
+
+.reproductor-fijo {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0 .4rem;
+    background: linear-gradient(to top, var(--fondo) 55%, transparent);
+}
+
+/* =========================================================
+    2. PANTALLA DE CANTAR  (body class="escenario")
+   ========================================================= */
+
+body.escenario {
+    overflow: hidden;                 /* la pagina no se mueve; se mueve la letra */
+    display: flex;
+    flex-direction: column;
+}
+
+.escenario header {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 1.3rem 1rem .3rem;
+}
+.escenario header h1 {
+    margin: 0 0 .35rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .38em;
+    text-transform: uppercase;
+    color: #5d648a;
+}
+.escenario header .titulo {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--tenue);
+}
+
+.escenario main {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    text-align: center;
+    padding: 34vh 6vw;                /* para que la 1a y la ultima puedan centrarse */
+    perspective: 900px;               /* <- esto crea la profundidad 3D */
+    perspective-origin: 50% 45%;
+    scrollbar-width: none;
+}
+.escenario main::-webkit-scrollbar { display: none; }
+
+/* estado por defecto = ya cantada: hundida, apagada y desenfocada */
+.linea {
+    margin: 0 0 1.6rem;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--pasada);
+    opacity: .5;
+    filter: blur(1.3px);
+    transform: translateZ(-170px) scale(.92);
+    transition: transform .45s cubic-bezier(.22, .61, .36, 1),
+                color .35s, opacity .35s, filter .35s, text-shadow .35s;
+}
+
+/* las que vienen despues de la actual = aun por cantar */
+.linea.actual ~ .linea {
+    color: var(--proxima);
+    opacity: .85;
+    filter: blur(.4px);
+    transform: translateZ(-90px) scale(.96);
+}
+
+/* la que toca AHORA: se adelanta hacia ti y se enciende */
+.linea.actual {
+    color: var(--acento);
+    opacity: 1;
+    filter: none;
+    transform: translateZ(70px) scale(1.02);
+    text-shadow: 0 0 26px rgba(255, 194, 77, .55),
+                 0 0 70px rgba(255, 140, 60, .28);
+}
+
+.escenario footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1rem 1.2rem 1.5rem;
+    background: linear-gradient(to top, rgba(7, 6, 15, .96) 40%, transparent);
+}
+.escenario footer a {
+    color: var(--tenue);
+    text-decoration: none;
+    font-size: .8rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.escenario footer a:hover { color: #fff; }
+
+#reloj {
+    margin: 0;
+    font-size: .75rem;
+    color: #4a5170;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- el reproductor nativo, en oscuro ---------- */
+audio {
+    height: 40px;
+    filter: invert(.92) hue-rotate(190deg) saturate(.35);
+}
+
+/* ---------- pantallas pequenas ---------- */
+@media (max-width: 560px) {
+    .titulo-pagina { font-size: 1.8rem; }
+    .tarjeta { flex-wrap: wrap; }
+    .linea { font-size: 1.5rem; }
+    .escenario main { padding: 30vh 5vw; }
+}

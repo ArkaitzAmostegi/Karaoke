@@ -3,16 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cantar</title>
+    <title>Versiones de {{ cancion }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <h1>Versiones de {{ cancion }}</h1>
-    <ul>
-        {% for c in candidatos %}
-        <a href="{{ url_for('usar_letra', cancion_id=cancion, lrclib_id=c.id) }}">Usar esta</a>
-        <li>{{ c.albumName }} — {{ c.duration }} segundos</li>
-        {% endfor %}
-    </ul>
-    <a href="{{url_for('portada')}}">Volver</a>
+<body class="pagina">
+    <div class="contenedor">
+
+        <p class="marca">{{ cancion }}</p>
+        <h1 class="titulo-pagina">Versiones <span class="destacado">encontradas</span></h1>
+        <p class="pista">
+            Elige la que dure lo mismo que tu MP3: si te equivocas de versión, la letra irá desfasada.
+        </p>
+
+        <ul class="lista" style="margin-top:1.5rem">
+            {% if error %}
+                {{error}}
+            {% elif not candidatos %}
+                <h4>Canción no encontrada</h4>
+            {% else %}
+                {% for c in candidatos %}
+                <li class="tarjeta">
+                    <span class="meta">
+                        <strong>{{ c.albumName or "Sin álbum" }}</strong>
+                        {{ c.duration }} segundos · {{ c.artistName }}
+                    </span>
+                    <a class="boton oro" href="{{ url_for('usar_letra', cancion_id=cancion, lrclib_id=c.id) }}">Usar esta</a>
+                </li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+
+        <a class="volver" href="{{ url_for('portada') }}">← Volver</a>
+
+    </div>
 </body>
 </html>

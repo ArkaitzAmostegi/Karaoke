@@ -71,12 +71,15 @@ Portada ──Cantar──────────> Cantar ──(el navegador p
 - [x] Buscar letras en LRCLIB y elegir la versión por duración
 - [x] Descargar y guardar la letra desde la web
 
+- [x] Iluminar la línea que toca, con scroll automático (JS + el reloj del audio)
+- [x] Editor: corregir el `.lrc` a mano y guardarlo
+- [x] Aspecto: fondo oscuro, letra en 3D, tarjetas
+
 ## Pendiente
 
-- [ ] **Iluminar la línea que toca cantar** — JavaScript leyendo el reloj del audio. Es lo que convierte esto en un karaoke.
-- [ ] **Editor: retocar tiempos a mano** — para canciones que no estén en LRCLIB, o para corregir un `.lrc` desplazado.
-- [ ] Pulido: letra grande sobre fondo oscuro, scroll automático, cuenta atrás antes de empezar.
 - [ ] Que se vea desde la tele o el móvil de la misma casa (`host="0.0.0.0"`).
+- [ ] Cuenta atrás antes de que entre la primera frase.
+- [ ] Que las líneas vacías (silencios) no se iluminen.
 
 ## Ideas para más adelante (de Arkaitz, 26-jul)
 

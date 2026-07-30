@@ -1,6 +1,7 @@
-from flask import Flask, render_template,send_from_directory, redirect, url_for
+from flask import Flask, render_template,send_from_directory, redirect, url_for, request
 from pathlib import Path
 from lrclib import buscar, descargar
+from requests.exceptions import RequestException
 
 
 app = Flask(__name__)
@@ -33,6 +34,7 @@ def sonar(cancion_id):
     cancion = f"{cancion_id}.mp3"
     return send_from_directory(CANCIONES, cancion, conditional=True)
 
+
 # Escribiendo el texto
 def leer_letra(cancion_id):
     ruta = CANCIONES / f"{cancion_id}.lrc"
@@ -49,7 +51,7 @@ def leer_letra(cancion_id):
         letra = linea[cierre+1:]
         minutos, segundos = sello.split(":")
         try:
-            tiempo = (int(minutos)*60) + float(segundos)
+            tiempo = round((int(minutos)*60) + float(segundos),2)
             lineas.append({"tiempo":tiempo, "texto":letra})
         except ValueError:
             continue
@@ -58,14 +60,27 @@ def leer_letra(cancion_id):
 
 
 #Página para editar las canciones, generar el texto de la letra
-@app.route("/editor/<cancion_id>")
+@app.route("/editor/<cancion_id>", methods=["GET", "POST"])
 def editar(cancion_id):
-    return render_template("editor.html", cancion=cancion_id)
+    if (request.method == "POST"):
+        #POST escribir la letra
+        letra = request.form["letra"]
+        ruta = CANCIONES / f"{cancion_id}.lrc"
+        ruta.write_text(letra, encoding="utf-8")
+        return redirect (url_for("cantar", cancion_id=cancion_id))
+    else:
+        #GET mirar la letra
+        ruta = CANCIONES / f"{cancion_id}.lrc"
+        texto = ruta.read_text(encoding="utf-8")
+        return render_template("editor.html", cancion = cancion_id, texto = texto)
 
 
 @app.route("/buscar/<cancion_id>")
 def buscar_letra(cancion_id):
-    candidatos = buscar(cancion_id.replace("-", " "))
+    try:
+        candidatos = buscar(cancion_id.replace("-", " "))
+    except RequestException:
+        return render_template("resultados.html", cancion=cancion_id, candidatos=[], error = 'No ha sido posible realizar la conexión')
     return render_template("resultados.html", cancion=cancion_id, candidatos=candidatos)
 
 @app.route("/usar/<cancion_id>/<int:lrclib_id>")
@@ -78,4 +93,4 @@ def usar_letra(cancion_id, lrclib_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5055)
+    app.run(debug=True, port=5055, host="0.0.0.0")
