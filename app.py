@@ -63,17 +63,21 @@ def leer_letra(cancion_id):
 #Página para editar las canciones, generar el texto de la letra
 @app.route("/editor/<cancion_id>", methods=["GET", "POST"])
 def editar(cancion_id):
-    if (request.method == "POST"):
-        #POST escribir la letra
+    ruta = CANCIONES / f"{cancion_id}.lrc"       # la misma ruta hace falta en los dos caminos
+
+    if request.method == "POST":
+        #POST: guardar la letra que venga del formulario
         letra = request.form["letra"]
-        ruta = CANCIONES / f"{cancion_id}.lrc"
         ruta.write_text(letra, encoding="utf-8")
-        return redirect (url_for("cantar", cancion_id=cancion_id))
-    else:
-        #GET mirar la letra
-        ruta = CANCIONES / f"{cancion_id}.lrc"
+        return redirect(url_for("cantar", cancion_id=cancion_id))
+
+    #GET: enseñar la letra que haya (o la caja vacia si la cancion aun no tiene)
+    if ruta.exists():
         texto = ruta.read_text(encoding="utf-8")
-        return render_template("editor.html", cancion = cancion_id, texto = texto)
+    else:
+        texto = ""
+
+    return render_template("editor.html", cancion=cancion_id, texto=texto)
 
 
 #Ruta para buscar letras e
@@ -115,7 +119,7 @@ def latido():
     if ESTADO["cancion"] is None:
         ESTADO["cancion"] = datos["cancion"]
         ESTADO["version"] += 1
-        
+
     if datos["cancion"] == ESTADO["cancion"]:
         ESTADO["tiempo"] = datos["tiempo"]
         ESTADO["sonando"] = datos["sonando"]
