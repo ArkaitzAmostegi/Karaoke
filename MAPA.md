@@ -77,7 +77,17 @@ Portada ──Cantar──────────> Cantar ──(el navegador p
 
 - [x] Que se vea desde la tele y los móviles de la casa (`host="0.0.0.0"`)
 
-## EN CURSO — Pantalla y mando
+## Pantalla y mando — HECHO (26-jul)
+
+**Rutas nuevas:** `/estado` (GET, devuelve el diccionario) · `/poner/<cancion>` (elige canción, pone `tiempo` a 0 y sube `version`) · `/latido` (POST, la tele manda su `currentTime` una vez por segundo) · `/movil` (la letra sin audio, lee la canción del estado).
+
+**Reglas que costaron sangre:**
+- El contador `version` existe para que el móvil detecte una orden *nueva* aunque se repita la misma canción. Cuando cambia, el móvil hace `location.reload()` y el servidor le regenera la letra entera — más tosco que repintar con JS, pero infalible.
+- **`/latido` solo acepta latidos de la canción que está puesta.** Sin ese filtro, una pestaña vieja de `/cantar` abierta en cualquier sitio sigue mandando latidos cada segundo y machaca el estado — y como `latido` no toca `version`, el móvil no se entera y muestra la letra buena con los tiempos de otra canción.
+- Si `ESTADO["cancion"]` es `None` (pasa en **cada reinicio del servidor**, porque el estado vive en memoria), `/latido` adopta la canción que le llegue y sube `version`. Sin eso, tras guardar un fichero los latidos se rechazan para siempre y el karaoke se congela sin avisar.
+- En el móvil, el `fetch` lleva `{cache: "no-store"}`: los navegadores de móvil cachean agresivamente y sin eso `version` no cambia nunca.
+
+## (histórico) Por qué pantalla y mando
 
 El problema que lo motiva: **cada navegador es un cliente independiente**. Si cada móvil reproduce su copia del MP3, se desincronizan (buffering y latencia de altavoz distintos) y suena a eco. El oído detecta desfases de 30 ms.
 
@@ -94,10 +104,20 @@ La clave: **la letra perdona décimas, el audio no.** Por eso los móviles sí p
 - [ ] **2. La tele** manda su `currentTime` al servidor mientras suena.
 - [ ] **3. El móvil** pregunta cada poco y pinta la letra por donde toca (polling; SSE y WebSockets serían más elegantes pero para un salón sobra).
 
+- [x] Cuenta atrás en los huecos y silencios que no se iluminan (26-jul)
+
+**Criterio de la cuenta atrás (decisión de Arkaitz):** no depende de que el `.lrc` marque los silencios con líneas vacías —LRCLIB casi nunca lo hace—, sino del **hueco real hasta la siguiente línea con letra**: si faltan menos de `AVISO` segundos (hoy 10), se cuenta. Funciona con cualquier `.lrc` venga como venga. Aparte, si la línea que toca está vacía no se ilumina ninguna (`indice = -1`).
+
+- [x] Todo el JavaScript en `static/karaoke.js`, compartido por las dos páginas (26-jul)
+
+**El reparto:** los ficheros de `static/` **no pasan por Jinja** (Flask los sirve tal cual), así que las plantillas conservan un único bloque `<script>` con los **datos** que solo sabe Python (`MODO`, `LINEAS`, `CANCION`, `VERSION`) y `karaoke.js` lleva **todo el comportamiento**. Al final del fichero, un `if (MODO === "tele")` decide qué arrancar. La función `pintar(t)` es común; lo único que cambia entre tele y móvil es de dónde sale la `t`.
+
+- [x] Sello de tiempo en el editor, en formato `[mm:ss.cc]` listo para copiar al `.lrc` (26-jul)
+
 ## Pendiente
 
-- [ ] Cuenta atrás antes de que entre la primera frase.
-- [ ] Que las líneas vacías (silencios) no se iluminen.
+- [ ] Empaquetar en `.exe` con PyInstaller. **Aparcado el 26-jul.** El paso 1 (que estaba a medias) es que `app.py` distinga si va empaquetado: con `getattr(sys, "frozen", False)`, `BASE = Path(sys.executable).parent` para las **canciones** (fuera, junto al .exe) y `RECURSOS = Path(sys._MEIPASS)` para **templates/ y static/** (dentro del paquete), pasándolos a `Flask(template_folder=..., static_folder=...)`. Sin eso, el `.exe` busca los MP3 dentro de su propia carpeta temporal.
+- [ ] Que `karaoke.js` se pida los datos él mismo (ruta `/letra/<cancion>` en JSON). Las plantillas se quedarían sin nada de JavaScript, y de regalo el móvil cambiaría de canción **sin recargar**.
 - [ ] Empaquetar en un `.exe` con PyInstaller, para llevarlo a casas sin Python (hay que incluir `templates/` y `static/` a mano). **Después** de pantalla+mando, para no empaquetar dos veces.
 
 ## Ideas para más adelante (de Arkaitz, 26-jul)

@@ -10,10 +10,11 @@
 
     <header>
         <h1>KARAOKE ARAMAR</h1>
-        <p class="titulo">{{ cancion }}</p>
+        <p class="titulo">{{ cancion or "Esperando..." }}</p>
     </header>
 
     <main>
+        <div id="cuentaAtras"></div>
         {% if not lineas %}
             <h4 class="linea">Esperando a que pongan una canción...</h4>
         {% else %}
@@ -23,45 +24,14 @@
         {% endif %}
     </main>
 
+<!-- los datos que solo sabe Python -->
 <script>
-    const ELEMENTOS = document.querySelectorAll(".linea");
-    const LINEAS = {{ lineas | tojson }};
+    const MODO    = "movil";
+    const LINEAS  = {{ lineas | tojson }};
+    const CANCION = {{ cancion | tojson }};
     const VERSION = {{ version | tojson }};
-
-    let anterior = -1;                       // que linea estaba marcada en la consulta anterior
-
-    // preguntar al servidor, una vez por segundo, por donde va la cancion
-    setInterval(function () {
-        fetch("/estado", { cache: "no-store"})
-            .then(r => r.json())
-            .then(function (e) {
-
-                // han puesto otra cancion: recargar para traer la letra nueva
-                if (e.version !== VERSION) {
-                    location.reload();
-                    return;
-                }
-
-                let indice = -1;
-                for (let i = 0; i < LINEAS.length; i++) {
-                    if (LINEAS[i].tiempo <= (e.tiempo + 1)) {
-                        indice = i;
-                    }
-                }
-
-                for (let j = 0; j < ELEMENTOS.length; j++) {
-                    ELEMENTOS[j].classList.toggle("actual", j === indice);
-                }
-
-                // solo mover la pantalla cuando CAMBIA de linea
-                if (indice !== anterior) {
-                    anterior = indice;
-                    if (indice >= 0) {
-                        ELEMENTOS[indice].scrollIntoView({ block: "center", behavior: "smooth" });
-                    }
-                }
-            });
-    }, 1000);
 </script>
+<!-- y toda la logica, compartida con la tele -->
+<script src="{{ url_for('static', filename='karaoke.js') }}"></script>
 </body>
 </html>

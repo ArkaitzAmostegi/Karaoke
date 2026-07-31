@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ cancion or esperando }}</title>
+    <title>{{ cancion }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="escenario">
@@ -14,6 +14,7 @@
     </header>
 
     <main>
+        <div id="cuentaAtras"></div>
         {% for linea in lineas %}
         <h4 class="linea">{{ linea.texto }}</h4>
         {% endfor %}
@@ -22,55 +23,16 @@
     <footer>
         <a href="{{ url_for('portada') }}">Volver</a>
         <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
-        <p id="reloj">0</p>
     </footer>
 
+
+<!-- los datos que solo sabe Python -->
 <script>
-    fetch("{{ url_for('poner', cancion_id=cancion) }}");
-
-    const audio = document.getElementById("reproductor");
-    const reloj = document.getElementById("reloj");
-    const ELEMENTOS = document.querySelectorAll(".linea");
-    const LINEAS = {{ lineas | tojson }};
-
-    let anterior = -1;                       // que linea estaba marcada en el tic anterior
-
-    audio.addEventListener("timeupdate", function () {
-        reloj.textContent = audio.currentTime.toFixed(2);
-
-        let indice = -1;
-        for (let i = 0; i < LINEAS.length; i++) {
-            if (LINEAS[i].tiempo <= (audio.currentTime + 1)) {
-                indice = i;
-            }
-        }
-
-        for (let j = 0; j < ELEMENTOS.length; j++) {
-            ELEMENTOS[j].classList.toggle("actual", j === indice);
-        }
-
-        // solo mover la pantalla cuando CAMBIA de linea, no en cada tic
-        if (indice !== anterior) {
-            anterior = indice;
-            if (indice >= 0) {
-                ELEMENTOS[indice].scrollIntoView({ block: "center", behavior: "smooth" });
-            }
-        }
-
-    });
-
-    // avisar al servidor, una vez por segundo, de por donde vamos
-    setInterval(function () {
-        fetch("/latido", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                cancion: {{ cancion | tojson }},
-                tiempo:  audio.currentTime,
-                sonando: !audio.paused
-            })
-        });
-    }, 1000);
+    const MODO    = "tele";
+    const LINEAS  = {{ lineas | tojson }};
+    const CANCION = {{ cancion | tojson }};
 </script>
+<!-- y toda la logica, compartida con el movil -->
+<script src="{{ url_for('static', filename='karaoke.js') }}"></script>
 </body>
 </html>

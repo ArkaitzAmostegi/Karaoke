@@ -195,7 +195,26 @@ body.pagina {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-evenly;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.buttons audio { flex: 1 1 260px; min-width: 200px; }
+
+/* el sello de tiempo del editor, en formato .lrc listo para copiar */
+.sello {
+    padding: .45rem .8rem;
+    border-radius: 10px;
+    background: rgba(255, 194, 77, .1);
+    border: 1px solid rgba(255, 194, 77, .32);
+    color: var(--acento);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;   /* que no baile de ancho al cambiar de cifra */
+    white-space: nowrap;
+    user-select: all;                     /* un clic selecciona el sello entero */
+    cursor: text;
 }
 
 #textarea {
@@ -343,6 +362,22 @@ body.escenario {
     color: #4a5170;
     font-variant-numeric: tabular-nums;
 }
+
+/* ---------- la cuenta atras de los silencios ---------- */
+/* fija sobre la pantalla: asi NO empuja la letra al aparecer y desaparecer */
+#cuentaAtras {
+    position:sticky;
+    left: 30%;
+    top: 50%;
+    transform: translate(-40%, -50%);
+    font-size: 7rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--acento);
+    text-shadow: 0 0 40px rgba(255, 194, 77, .5);
+    pointer-events: none;            /* no estorba a los clics de debajo */
+}
+#cuentaAtras:empty { display: none; } /* cuando esta vacia, ni existe */
 
 /* ---------- el reproductor nativo, en oscuro ---------- */
 audio {

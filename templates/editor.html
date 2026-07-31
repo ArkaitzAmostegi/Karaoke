@@ -20,6 +20,7 @@
             <div class="buttons">
                 <a class="boton oro" href="{{ url_for('buscar_letra', cancion_id=cancion) }}">Buscar en internet</a>
                 <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+                <span id="sello" class="sello" title="Tiempo exacto: haz clic para seleccionarlo entero">[00:00.00]</span>
             </div>
         </div>
 
@@ -37,5 +38,21 @@
         <a class="volver" href="{{ url_for('portada') }}">← Volver</a>
 
     </div>
+
+<script>
+    const audio = document.getElementById("reproductor");
+    const sello = document.getElementById("sello");
+
+    // 73.4 segundos -> "[01:13.40]", listo para copiar al .lrc
+    function selloLrc(segundos) {
+        const min = Math.floor(segundos / 60);
+        const seg = segundos % 60;
+        return "[" + String(min).padStart(2, "0") + ":" + seg.toFixed(2).padStart(5, "0") + "]";
+    }
+
+    audio.addEventListener("timeupdate", function () {
+        sello.textContent = selloLrc(audio.currentTime);
+    });
+</script>
 </body>
 </html>
