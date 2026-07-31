@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ cancion }}</title>
+    <title>{{ cancion or esperando }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="escenario">
@@ -26,6 +26,8 @@
     </footer>
 
 <script>
+    fetch("{{ url_for('poner', cancion_id=cancion) }}");
+
     const audio = document.getElementById("reproductor");
     const reloj = document.getElementById("reloj");
     const ELEMENTOS = document.querySelectorAll(".linea");
@@ -54,7 +56,21 @@
                 ELEMENTOS[indice].scrollIntoView({ block: "center", behavior: "smooth" });
             }
         }
+
     });
+
+    // avisar al servidor, una vez por segundo, de por donde vamos
+    setInterval(function () {
+        fetch("/latido", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                cancion: {{ cancion | tojson }},
+                tiempo:  audio.currentTime,
+                sonando: !audio.paused
+            })
+        });
+    }, 1000);
 </script>
 </body>
 </html>

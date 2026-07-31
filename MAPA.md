@@ -75,19 +75,45 @@ Portada ──Cantar──────────> Cantar ──(el navegador p
 - [x] Editor: corregir el `.lrc` a mano y guardarlo
 - [x] Aspecto: fondo oscuro, letra en 3D, tarjetas
 
+- [x] Que se vea desde la tele y los móviles de la casa (`host="0.0.0.0"`)
+
+## EN CURSO — Pantalla y mando
+
+El problema que lo motiva: **cada navegador es un cliente independiente**. Si cada móvil reproduce su copia del MP3, se desincronizan (buffering y latencia de altavoz distintos) y suena a eco. El oído detecta desfases de 30 ms.
+
+Decisión (Arkaitz, 26-jul): **suena en un solo sitio.**
+
+| Aparato | Qué hace |
+|---|---|
+| La tele / el portátil | Elige canción. **Suena aquí y solo aquí.** Muestra la letra. |
+| Los móviles | Muestran la misma letra sincronizada. **Sin audio.** Si te conectas tarde, entras por donde va. |
+
+La clave: **la letra perdona décimas, el audio no.** Por eso los móviles sí pueden mostrar la letra en sincronía, pero no reproducir.
+
+- [ ] **1. Estado compartido** en el servidor: `ESTADO = {"cancion", "tiempo", "sonando", "version"}` + rutas `/estado` y `/poner/<cancion_id>`. El contador `version` existe para que la tele detecte una orden *nueva* aunque se repita la misma canción.
+- [ ] **2. La tele** manda su `currentTime` al servidor mientras suena.
+- [ ] **3. El móvil** pregunta cada poco y pinta la letra por donde toca (polling; SSE y WebSockets serían más elegantes pero para un salón sobra).
+
 ## Pendiente
 
-- [ ] Que se vea desde la tele o el móvil de la misma casa (`host="0.0.0.0"`).
 - [ ] Cuenta atrás antes de que entre la primera frase.
 - [ ] Que las líneas vacías (silencios) no se iluminen.
+- [ ] Empaquetar en un `.exe` con PyInstaller, para llevarlo a casas sin Python (hay que incluir `templates/` y `static/` a mano). **Después** de pantalla+mando, para no empaquetar dos veces.
 
 ## Ideas para más adelante (de Arkaitz, 26-jul)
 
-Estas son las que justificarían meter una base de datos. Hasta entonces, la carpeta `canciones/` hace de base de datos.
+**Las que justificarían una base de datos.** Hasta entonces, la carpeta `canciones/` hace de base de datos.
 
 - [ ] **Cola de canciones**: varios en el salón añaden desde el móvil, "ahora canta X".
 - [ ] **Sorteo**: a quién le toca cantar y con qué canción.
 - [ ] **Buscador** por artista, título, etc. (hoy solo hay la lista completa).
+
+**Dificultad 2 y letra por palabras.** Las dos se apoyan en la misma herramienta.
+
+- [ ] **Quitar la voz del cantante** (dificultad 2): con **Demucs** (`pip install demucs`, código abierto). Se procesa una vez por canción —minutos en CPU— y se guarda un tercer fichero hermano, `cancion-karaoke.mp3`. Luego `/audio/<id>` sirve uno u otro. Alternativa con ventana gráfica: Ultimate Vocal Remover.
+- [ ] **Letra palabra a palabra**: el formato ya existe, se llama **LRC mejorado** (`[00:13.76]<00:13.76>Esaiozu <00:14.31>euriari`). LRCLIB solo sirve nivel línea y los que tienen palabra a palabra son de pago, así que hay que generarlo: **alineación forzada** (dar audio + letra conocida y que calcule los tiempos) con **WhisperX**, sobre la pista de voz que saca Demucs.
+- Descartado: **sílabas**. Necesitaría alineación por fonemas (Montreal Forced Aligner) y diccionario por idioma. Los karaokes comerciales van por palabra y nadie echa de menos más.
+- Aviso: Whisper conoce el euskera pero flojo (idioma con pocos datos). En castellano o inglés saldrá bastante mejor.
 
 ---
 
