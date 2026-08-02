@@ -114,6 +114,17 @@ La clave: **la letra perdona décimas, el audio no.** Por eso los móviles sí p
 
 - [x] Sello de tiempo en el editor, en formato `[mm:ss.cc]` listo para copiar al `.lrc` (26-jul)
 
+## EN CURSO — Dos modos de juego y el QR
+
+**Modo "a tutiplén"** (idea de Arkaitz, 26-jul): además de elegir canción a mano, un modo que arranca y va encadenando canciones al azar con unos segundos de descanso.
+
+- **Baraja, no dado.** Elegir al azar de verdad repite canciones antes de que suenen todas. Se baraja la lista entera y se recorre; solo al agotarla se vuelve a barajar.
+- **La baraja vive en el servidor**, no en el navegador: al cambiar de canción la página se recarga y el navegador perdería el estado.
+- **Solo canciones con letra.** Las 10 que no la tienen están apartadas en `canciones/_sin_letra/` (invisibles para la app, porque `glob("*.mp3")` no entra en subcarpetas).
+- **Riesgo conocido:** los navegadores bloquean la reproducción automática con sonido sin interacción previa. Si molesta, la solución es cambiar de canción **sin recargar** (ver el pendiente de `/letra/<cancion>`).
+
+**Código QR en la pantalla de la tele**: dictar `192.168.0.42:5055/movil` a cinco personas en un salón es un incordio. Con la librería `qrcode` de Python, una ruta que devuelva la imagen. Para averiguar la IP local sin depender de la configuración: abrir un socket UDP hacia 8.8.8.8 y leer `getsockname()` — no envía nada ni necesita internet, solo hace que el sistema elija la interfaz de salida.
+
 ## Pendiente
 
 - [ ] Empaquetar en `.exe` con PyInstaller. **Aparcado el 26-jul.** El paso 1 (que estaba a medias) es que `app.py` distinga si va empaquetado: con `getattr(sys, "frozen", False)`, `BASE = Path(sys.executable).parent` para las **canciones** (fuera, junto al .exe) y `RECURSOS = Path(sys._MEIPASS)` para **templates/ y static/** (dentro del paquete), pasándolos a `Flask(template_folder=..., static_folder=...)`. Sin eso, el `.exe` busca los MP3 dentro de su propia carpeta temporal.

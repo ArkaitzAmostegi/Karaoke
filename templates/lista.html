@@ -11,6 +11,18 @@
 
         <p class="marca">Karaoke - Aramar</p>
         <h1 class="titulo-pagina">Elige tu <span class="destacado">canción</span></h1>
+        <div class="qr">{{ qr | safe }}</div>
+
+        <div class="panel tutiplen">
+            <div>
+                <p class="seccion" style="margin:0 0 .35rem">O no elijas</p>
+                <p class="pista" style="margin:0">
+                    Karaoke a tutiplén: van saliendo canciones al azar, una detrás de otra,
+                    sin repetir hasta que hayan sonado todas.
+                </p>
+            </div>
+            <a class="boton oro" href="{{ url_for('tutiplen') }}">🎲 A tutiplén</a>
+        </div>
 
         {% if not canciones %}
         <p class="vacio">

@@ -17,7 +17,7 @@
 const ELEMENTOS   = document.querySelectorAll(".linea");
 const cuentaAtras = document.getElementById("cuentaAtras");
 
-const AVISO = 10;        // si faltan menos de estos segundos para la siguiente frase, se cuenta
+const AVISO = 9;        // si faltan menos de estos segundos para la siguiente frase, se cuenta
 
 let anterior = -1;       // que linea estaba marcada la ultima vez que pintamos
 
@@ -101,6 +101,51 @@ function arrancarTele() {
             })
         });
     }, 1000);
+
+    if (FIESTA) {
+        arrancarFiesta(audio);
+    }
+}
+
+
+/* ---------------------------------------------------------
+    MODO A TUTIPLEN: la cancion arranca sola y al acabar
+    encadena con la siguiente tras unos segundos de descanso.
+   --------------------------------------------------------- */
+const DESCANSO = 6;      // segundos entre cancion y cancion
+
+function arrancarFiesta(audio) {
+
+    // 1. intentar que suene sola. Los navegadores bloquean el arranque
+    //    automatico con sonido si el usuario no ha tocado la pagina todavia:
+    //    play() devuelve una promesa que se rechaza, y ahi pedimos un toque.
+    audio.play().catch(function () {
+        cuentaAtras.classList.add("mensaje");
+        cuentaAtras.textContent = "Toca la pantalla para empezar";
+        document.body.addEventListener("click", function () {
+            cuentaAtras.classList.remove("mensaje");
+            cuentaAtras.textContent = "";
+            audio.play();
+        }, { once: true });                     // once: se desengancha solo tras el primer clic
+    });
+
+    // 2. al terminar, cuenta atras y a por la siguiente.
+    //    "ended" lo dispara el navegador solo cuando la cancion llega al final.
+    audio.addEventListener("ended", function () {
+        let quedan = DESCANSO;
+        cuentaAtras.classList.add("descanso");
+        cuentaAtras.textContent = quedan;
+
+        const reloj = setInterval(function () {
+            quedan--;
+            if (quedan > 0) {
+                cuentaAtras.textContent = quedan;
+                return;
+            }
+            clearInterval(reloj);               // parar el temporizador ANTES de irnos
+            location.href = "/tutiplen";        // el servidor saca otra de la baraja
+        }, 1000);
+    });
 }
 
 

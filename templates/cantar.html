@@ -21,8 +21,15 @@
     </main>
 
     <footer>
+        {% if fiesta %}
+        <a href="{{ url_for('parar') }}">Parar la fiesta</a>
+        {% else %}
         <a href="{{ url_for('portada') }}">Volver</a>
+        {% endif %}
         <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+        {% if fiesta %}
+        <a href="{{ url_for('tutiplen') }}">Saltar &rsaquo;&rsaquo;</a>
+        {% endif %}
     </footer>
 
 
@@ -31,6 +38,7 @@
     const MODO    = "tele";
     const LINEAS  = {{ lineas | tojson }};
     const CANCION = {{ cancion | tojson }};
+    const FIESTA  = {{ fiesta | tojson }};
 </script>
 <!-- y toda la logica, compartida con el movil -->
 <script src="{{ url_for('static', filename='karaoke.js') }}"></script>

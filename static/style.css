@@ -191,6 +191,17 @@ body.pagina {
     border-radius: 16px;
     margin-bottom: 1.5rem;
 }
+/* la tarjeta del modo aleatorio, en la portada */
+.panel.tutiplen {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    border-color: rgba(255, 194, 77, .28);
+}
+.panel.tutiplen .pista { max-width: 46ch; }
+
 .buttons{
     display: flex;
     flex-direction: row;
@@ -367,9 +378,9 @@ body.escenario {
 /* fija sobre la pantalla: asi NO empuja la letra al aparecer y desaparecer */
 #cuentaAtras {
     position:sticky;
-    left: 30%;
-    top: 50%;
-    transform: translate(-40%, -50%);
+    left: 50%;
+    top: -100%;
+    /* transform: translate(-50%, -50%); */
     font-size: 7rem;
     font-weight: 700;
     line-height: 1;
@@ -385,10 +396,72 @@ audio {
     filter: invert(.92) hue-rotate(190deg) saturate(.35);
 }
 
+/*------------  El QR ---------------------*/
+
+/* la cuenta atras en modo texto: "Toca la pantalla para empezar" */
+#cuentaAtras.mensaje {
+    min-width: 0;
+    padding: .7rem 1.4rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+}
+/* el descanso entre cancion y cancion, en modo fiesta */
+#cuentaAtras.descanso {
+    color: var(--acento-2);
+    border-color: rgba(255, 77, 141, .4);
+    text-shadow: 0 0 24px rgba(255, 77, 141, .45);
+}
+
+/* ---------- el QR para engancharse desde el movil ----------
+   position: fixed lo saca del flujo: no ocupa sitio en la columna,
+   asi que las canciones empiezan justo debajo del titulo. */
+.qr {
+    position: fixed;
+    left: 1.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: .9rem;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
+    z-index: 10;
+}
+.qr svg {
+    width: 260px;
+    height: auto;
+    display: block;
+    shape-rendering: crispEdges;   /* sin suavizado: los cuadrados a filo */
+}
+.qr::after {
+    content: "Escanea para seguir la letra en tu movil";
+    display: block;
+    margin-top: .6rem;
+    max-width: 260px;
+    color: #4a4a4a;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-align: center;
+    line-height: 1.35;
+}
+
+/* El QR solo aparece si CABE de verdad al lado de la columna:
+   columna 780 + 2 x (26 margen + 260 qr + 29 padding + hueco) ~= 1450px.
+   Por debajo se solaparia con las canciones, asi que se esconde.
+   Y da igual: por debajo de eso ya estas mirando desde el movil. */
+@media (max-width: 1450px) {
+    .qr { display: none; }
+}
+
 /* ---------- pantallas pequenas ---------- */
-@media (max-width: 560px) {
+@media (max-width: 900px) {
     .titulo-pagina { font-size: 1.8rem; }
     .tarjeta { flex-wrap: wrap; }
     .linea { font-size: 1.5rem; }
     .escenario main { padding: 30vh 5vw; }
+    #cuentaAtras {
+        transform: translate(-40%, -90%); 
+        font-size: 5rem;    
+    }
 }

@@ -1,8 +1,10 @@
 /.venv
 
-# El audio no se versiona: pesa mucho y no es nuestro
-canciones/*.mp3
-canciones/*.ogg
+# El audio no se versiona: pesa mucho y no es nuestro.
+# Sin barra, la regla vale en CUALQUIER carpeta (tambien en canciones/_sin_letra/).
+# Con "canciones/*.mp3" un solo * no atraviesa subcarpetas y se colaban.
+*.mp3
+*.ogg
 
 # Los .lrc SI se versionan: son trabajo tuyo y ocupan nada
 
