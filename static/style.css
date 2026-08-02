@@ -291,7 +291,7 @@ body.escenario {
 }
 .escenario header h1 {
     margin: 0 0 .35rem;
-    font-size: .72rem;
+    font-size: 1.72rem;
     font-weight: 700;
     letter-spacing: .38em;
     text-transform: uppercase;
@@ -323,7 +323,7 @@ body.escenario {
     font-size: 2rem;
     font-weight: 600;
     line-height: 1.25;
-    color: var(--pasada);
+    color: #7880b5;
     opacity: .5;
     filter: blur(1.3px);
     transform: translateZ(-170px) scale(.92);
