@@ -12,150 +12,190 @@ Abre este fichero cuando no sepas dónde estás. Se actualiza cada vez que añad
 
 ---
 
-## Las páginas (lo que ve una persona)
+## Las páginas
 
 | URL | Función | Qué es |
 |---|---|---|
-| `/` | `portada` | Lista de canciones. Dos enlaces por canción: **Cantar** y **Sincronizar**. |
-| `/cantar/<cancion>` | `cantar` | El karaoke: reproductor + letra. |
-| `/editor/<cancion>` | `editar` | Sala de máquinas de una canción. Hoy casi vacía. |
-| `/buscar/<cancion>` | `buscar_letra` | Las versiones que existen en LRCLIB, con álbum y duración. |
+| `/` | `portada` | Lista de canciones, el botón de *a tutiplén* y el QR para los móviles. |
+| `/cantar/<cancion>` | `cantar` | El karaoke: reproductor + letra en 3D. |
+| `/movil` | `movil` | La misma letra, sincronizada, **sin audio**. Para los móviles. |
+| `/editor/<cancion>` | `editar` | Sala de máquinas: buscar letra, corregirla a mano, sello de tiempo en vivo. |
+| `/buscar/<cancion>` | `buscar_letra` | Las versiones de LRCLIB, con álbum y duración. Solo las que traen tiempos. |
+| `/marcar/<cancion>` | `marcar` | **Sincronizar a mano** marcando con ESPACIO. Ver más abajo. |
 
-## Las acciones (hacen algo y te redirigen)
+## Las acciones (hacen algo y redirigen, o devuelven datos)
 
 | URL | Función | Qué es |
 |---|---|---|
-| `/usar/<cancion>/<id>` | `usar_letra` | Descarga esa versión, la guarda como `.lrc` y te lleva a Cantar. |
-| `/audio/<cancion>` | `sonar` | Entrega el MP3. **No la visitas tú**: la pide la etiqueta `<audio>` del navegador. |
+| `/audio/<cancion>` | `sonar` | Entrega el MP3. **No la visitas tú**: la pide la etiqueta `<audio>`. |
+| `/usar/<cancion>/<id>` | `usar_letra` | Baja esa versión de LRCLIB, la guarda y lleva a Cantar. |
+| `/estado` | `estado` | Devuelve el diccionario `ESTADO` en JSON. Lo consultan los móviles. |
+| `/poner/<cancion>` | `poner` | Fija la canción, pone `tiempo` a 0 y **sube `version`**. |
+| `/latido` | `latido` | POST: la tele manda su `currentTime` una vez por segundo. |
+| `/siguiente` | `siguiente` | Saca una canción de la baraja (para probar). |
+| `/tutiplen` | `tutiplen` | Enciende el modo fiesta y salta a una al azar. **La misma ruta encadena.** |
+| `/parar` | `parar` | Apaga el modo fiesta. |
 
 ## Cómo se llega de una a otra
 
 ```
 Portada ──Cantar──────────> Cantar ──(el navegador pide)──> Audio
+   │                          │  ▲
+   │                          │  └── al acabar, si hay fiesta ──> /tutiplen
+   ├──A tutiplen──> /tutiplen ─┘
    │
-   └──Sincronizar────────> Editor ──Buscar letra──> Versiones
-                                                        │
-                                            Usar esta ──┘
-                                                        │
-                                                        v
-                                                     Cantar
+   └──Editar──> Editor ──Buscar en internet──> Versiones ──Usar esta──> Cantar
+                   │
+                   └──Sincronizar a mano──> /marcar ──Guardar y cantar──> Cantar
+
+Cantar ──latido 1/s──> ESTADO en el servidor ──consulta 1/s──> Moviles
 ```
 
 ---
 
-## Los ficheros del proyecto
+## Los ficheros
 
 | Fichero | Para qué |
 |---|---|
-| `app.py` | El servidor web: todas las rutas. |
+| `app.py` | El servidor: todas las rutas y el estado compartido. |
 | `lrclib.py` | Hablar con la API de LRCLIB: `buscar()` y `descargar()`. |
-| `bajar_letras.py` | Script de consola: baja de golpe las letras que falten. No es parte de la web. |
-| `templates/` | Las plantillas HTML: `lista`, `cantar`, `editor`, `resultados`. |
-| `canciones/` | Los datos: `.mp3` (fuera del repo) y `.lrc` (dentro del repo). |
+| `static/karaoke.js` | El motor del karaoke, compartido por tele y móvil. |
+| `static/marcar.js` | El sincronizador a mano. |
+| `static/style.css` | Una sola hoja; el modo lo decide la clase del `<body>`. |
+| `templates/` | Las seis páginas. |
+| `canciones/` | Los datos: `.mp3` (fuera del repo) y `.lrc` (dentro). |
 
-## Las funciones que no son rutas
+## Las herramientas de consola (no son parte de la web)
 
-| Función | Qué hace |
+| Script | Para qué |
 |---|---|
-| `listar_canciones()` | Mira `canciones/` y devuelve los nombres de los `.mp3`. |
-| `leer_letra(cancion_id)` | Lee el `.lrc` y lo convierte en `[{"tiempo": 13.76, "texto": "..."}]`. |
+| `bajar_letras.py` | Baja de LRCLIB las letras que falten, eligiendo versión **por duración**. |
+| `sincronizar.py` | **Re-cronometra** los `.lrc` escuchando la canción con Whisper. |
+| `convertir_a_mp3.py` | Arregla las descargas que llevan `.mp3` pero por dentro son MP4/M4A. |
+
+---
+
+## Sincronizar: las tres vías, y cuándo usar cada una
+
+Este fue el problema más largo del proyecto. El resumen:
+
+**1. Bajar la letra ya sincronizada** — `bajar_letras.py` o *Editor → Buscar en internet*.
+Es la primera opción siempre. **Elegir la versión por duración es crítico**: una misma canción tiene versiones que van de 185 a 237 segundos, y equivocarse desfasa la letra entera.
+
+**2. Re-cronometrar automáticamente** — `python sincronizar.py --todas`.
+Cuando el texto del `.lrc` es bueno pero los tiempos no cuadran con *tu* grabación. Whisper escucha, se emparejan sus palabras con las del `.lrc`, y donde coinciden queda un **ancla**. Lo demás se interpola.
+
+**3. Marcar a mano** — `/marcar/<cancion>`.
+Para lo que la máquina no puede: **euskera** y las canciones donde el alineador se pierde. Una escucha por canción marcando con ESPACIO.
+
+### Lo que se midió, para no repetir el camino
+
+| Prueba | Resultado |
+|---|---|
+| Reconocimiento sobre la mezcla (modelo `medium`) | **46%** de las palabras |
+| Aislar la voz antes con **Demucs** | **38%** — *empeora*, y tarda el doble |
+| Modelo **`large-v3`** en vez de `medium` | 48% — dos puntos por el doble de tiempo |
+| Forzar el idioma correcto | **6% → 77%** en un caso |
+
+**Conclusiones:**
+- **Sacar la letra del audio no sirve**: con menos de la mitad de las palabras bien, habría que reescribirla entera. El texto sale del `.lrc`; de la canción salen solo los tiempos.
+- **Demucs no ayuda al reconocimiento.** Whisper está entrenado con audio real, música incluida; una pista separada arrastra artefactos que le resultan más ajenos que la mezcla. *(Sí sirve para el instrumental de la dificultad 2.)*
+- **El idioma mal detectado es el fallo que más daño hace.** Whisper detectó **ruso en tres canciones inglesas**. Si una canción sale con pocas anclas, lo primero es forzarle el idioma.
+
+### Las reglas del alineador (`sincronizar.py`)
+
+- **`DESFASE = 0.5`** — Whisper marca las palabras algo antes de que suenen. Medido a mano sobre 6 entradas: con la corrección puesta, el error medio quedó en **0,01 s**.
+- **`MIN_RACHA = 3`** — solo valen como ancla las rachas de 3 palabras seguidas. Una coincidencia suelta ("como", "un", "el") casa por casualidad en el sitio equivocado.
+- **Descarte por velocidad imposible** — si entre dos anclas hay 60 palabras y 2 segundos, una miente: nadie canta a 30 palabras por segundo. Este filtro fue el que arregló el amontonamiento de líneas.
+- **`HUECO_MINIMO = 1.2`** — dos líneas con el mismo sello no se pueden cantar: la segunda no llega a verse.
+- **El original no se pisa**: se escribe `.lrc.nuevo` al lado y se aplica solo si los números convencen.
+- **El informe** (`informe_sincronizacion.txt`) ordena las canciones **de más a menos sospechosa**, para revisar solo las de arriba en vez de las 78.
 
 ---
 
 ## Hecho
 
 - [x] Listar canciones leyendo la carpeta
-- [x] Página de cantar con reproductor funcionando
+- [x] Reproductor y letra en pantalla
 - [x] Leer y trocear el formato `.lrc`
-- [x] Enseñar la letra en pantalla (quieta, sin sincronizar)
-- [x] Buscar letras en LRCLIB y elegir la versión por duración
-- [x] Descargar y guardar la letra desde la web
-
-- [x] Iluminar la línea que toca, con scroll automático (JS + el reloj del audio)
-- [x] Editor: corregir el `.lrc` a mano y guardarlo
+- [x] Buscar y descargar letras de LRCLIB eligiendo versión por duración
+- [x] Iluminar la línea que toca, con scroll automático
+- [x] Editor para corregir el `.lrc`, con sello de tiempo en vivo
 - [x] Aspecto: fondo oscuro, letra en 3D, tarjetas
-
-- [x] Que se vea desde la tele y los móviles de la casa (`host="0.0.0.0"`)
-
-## Pantalla y mando — HECHO (26-jul)
-
-**Rutas nuevas:** `/estado` (GET, devuelve el diccionario) · `/poner/<cancion>` (elige canción, pone `tiempo` a 0 y sube `version`) · `/latido` (POST, la tele manda su `currentTime` una vez por segundo) · `/movil` (la letra sin audio, lee la canción del estado).
-
-**Reglas que costaron sangre:**
-- El contador `version` existe para que el móvil detecte una orden *nueva* aunque se repita la misma canción. Cuando cambia, el móvil hace `location.reload()` y el servidor le regenera la letra entera — más tosco que repintar con JS, pero infalible.
-- **`/latido` solo acepta latidos de la canción que está puesta.** Sin ese filtro, una pestaña vieja de `/cantar` abierta en cualquier sitio sigue mandando latidos cada segundo y machaca el estado — y como `latido` no toca `version`, el móvil no se entera y muestra la letra buena con los tiempos de otra canción.
-- Si `ESTADO["cancion"]` es `None` (pasa en **cada reinicio del servidor**, porque el estado vive en memoria), `/latido` adopta la canción que le llegue y sube `version`. Sin eso, tras guardar un fichero los latidos se rechazan para siempre y el karaoke se congela sin avisar.
-- En el móvil, el `fetch` lleva `{cache: "no-store"}`: los navegadores de móvil cachean agresivamente y sin eso `version` no cambia nunca.
-
-## (histórico) Por qué pantalla y mando
-
-El problema que lo motiva: **cada navegador es un cliente independiente**. Si cada móvil reproduce su copia del MP3, se desincronizan (buffering y latencia de altavoz distintos) y suena a eco. El oído detecta desfases de 30 ms.
-
-Decisión (Arkaitz, 26-jul): **suena en un solo sitio.**
-
-| Aparato | Qué hace |
-|---|---|
-| La tele / el portátil | Elige canción. **Suena aquí y solo aquí.** Muestra la letra. |
-| Los móviles | Muestran la misma letra sincronizada. **Sin audio.** Si te conectas tarde, entras por donde va. |
-
-La clave: **la letra perdona décimas, el audio no.** Por eso los móviles sí pueden mostrar la letra en sincronía, pero no reproducir.
-
-- [ ] **1. Estado compartido** en el servidor: `ESTADO = {"cancion", "tiempo", "sonando", "version"}` + rutas `/estado` y `/poner/<cancion_id>`. El contador `version` existe para que la tele detecte una orden *nueva* aunque se repita la misma canción.
-- [ ] **2. La tele** manda su `currentTime` al servidor mientras suena.
-- [ ] **3. El móvil** pregunta cada poco y pinta la letra por donde toca (polling; SSE y WebSockets serían más elegantes pero para un salón sobra).
-
-- [x] Cuenta atrás en los huecos y silencios que no se iluminan (26-jul)
-
-**Criterio de la cuenta atrás (decisión de Arkaitz):** no depende de que el `.lrc` marque los silencios con líneas vacías —LRCLIB casi nunca lo hace—, sino del **hueco real hasta la siguiente línea con letra**: si faltan menos de `AVISO` segundos (hoy 10), se cuenta. Funciona con cualquier `.lrc` venga como venga. Aparte, si la línea que toca está vacía no se ilumina ninguna (`indice = -1`).
-
-- [x] Todo el JavaScript en `static/karaoke.js`, compartido por las dos páginas (26-jul)
-
-**El reparto:** los ficheros de `static/` **no pasan por Jinja** (Flask los sirve tal cual), así que las plantillas conservan un único bloque `<script>` con los **datos** que solo sabe Python (`MODO`, `LINEAS`, `CANCION`, `VERSION`) y `karaoke.js` lleva **todo el comportamiento**. Al final del fichero, un `if (MODO === "tele")` decide qué arrancar. La función `pintar(t)` es común; lo único que cambia entre tele y móvil es de dónde sale la `t`.
-
-- [x] Sello de tiempo en el editor, en formato `[mm:ss.cc]` listo para copiar al `.lrc` (26-jul)
-
-## EN CURSO — Dos modos de juego y el QR
-
-**Modo "a tutiplén"** (idea de Arkaitz, 26-jul): además de elegir canción a mano, un modo que arranca y va encadenando canciones al azar con unos segundos de descanso.
-
-- **Baraja, no dado.** Elegir al azar de verdad repite canciones antes de que suenen todas. Se baraja la lista entera y se recorre; solo al agotarla se vuelve a barajar.
-- **La baraja vive en el servidor**, no en el navegador: al cambiar de canción la página se recarga y el navegador perdería el estado.
-- **Solo canciones con letra.** Las 10 que no la tienen están apartadas en `canciones/_sin_letra/` (invisibles para la app, porque `glob("*.mp3")` no entra en subcarpetas).
-- **Riesgo conocido:** los navegadores bloquean la reproducción automática con sonido sin interacción previa. Si molesta, la solución es cambiar de canción **sin recargar** (ver el pendiente de `/letra/<cancion>`).
-
-**Código QR en la pantalla de la tele**: dictar `192.168.0.42:5055/movil` a cinco personas en un salón es un incordio. Con la librería `qrcode` de Python, una ruta que devuelva la imagen. Para averiguar la IP local sin depender de la configuración: abrir un socket UDP hacia 8.8.8.8 y leer `getsockname()` — no envía nada ni necesita internet, solo hace que el sistema elija la interfaz de salida.
+- [x] Se ve desde la tele y los móviles de la casa (`host="0.0.0.0"`)
+- [x] Pantalla y mando: la tele suena, los móviles siguen la letra
+- [x] Cuenta atrás en los huecos; los silencios no se iluminan
+- [x] Todo el JavaScript en `static/`, compartido entre páginas
+- [x] Modo **a tutiplén**: baraja aleatoria que encadena canciones
+- [x] **Código QR** en la portada, con la IP calculada en cada visita
+- [x] **Re-cronometrado automático** con Whisper
+- [x] **Sincronizador a mano** (`/marcar`), con texto editable y líneas insertables
 
 ## Pendiente
 
-- [ ] Empaquetar en `.exe` con PyInstaller. **Aparcado el 26-jul.** El paso 1 (que estaba a medias) es que `app.py` distinga si va empaquetado: con `getattr(sys, "frozen", False)`, `BASE = Path(sys.executable).parent` para las **canciones** (fuera, junto al .exe) y `RECURSOS = Path(sys._MEIPASS)` para **templates/ y static/** (dentro del paquete), pasándolos a `Flask(template_folder=..., static_folder=...)`. Sin eso, el `.exe` busca los MP3 dentro de su propia carpeta temporal.
-- [ ] Que `karaoke.js` se pida los datos él mismo (ruta `/letra/<cancion>` en JSON). Las plantillas se quedarían sin nada de JavaScript, y de regalo el móvil cambiaría de canción **sin recargar**.
-- [ ] Empaquetar en un `.exe` con PyInstaller, para llevarlo a casas sin Python (hay que incluir `templates/` y `static/` a mano). **Después** de pantalla+mando, para no empaquetar dos veces.
+- [ ] Acceso al marcador desde la portada (ahora solo se llega entrando al editor).
+- [ ] Sincronizar a mano las que la máquina no pudo: las 9 en euskera y Bon Jovi.
+- [ ] `desire-voyage-voyage` no tiene letra en LRCLIB — marcar a mano o buscarla por otro lado.
+- [ ] Que `karaoke.js` se pida los datos él mismo (ruta `/letra/<cancion>` en JSON). Las plantillas se quedarían sin JavaScript y, de regalo, el móvil cambiaría de canción **sin recargar**.
+- [ ] Empaquetar en `.exe` con PyInstaller. **Aparcado.** La trampa: `getattr(sys, "frozen", False)` para distinguirlo, `Path(sys.executable).parent` para las **canciones** (fuera, junto al .exe) y `Path(sys._MEIPASS)` para **templates/ y static/** (dentro del paquete), pasándolos a `Flask(template_folder=..., static_folder=...)`. Sin eso, el `.exe` busca los MP3 en su propia carpeta temporal.
 
-## Ideas para más adelante (de Arkaitz, 26-jul)
+## Ideas para más adelante
 
 **Las que justificarían una base de datos.** Hasta entonces, la carpeta `canciones/` hace de base de datos.
 
 - [ ] **Cola de canciones**: varios en el salón añaden desde el móvil, "ahora canta X".
 - [ ] **Sorteo**: a quién le toca cantar y con qué canción.
-- [ ] **Buscador** por artista, título, etc. (hoy solo hay la lista completa).
+- [ ] **Buscador** por artista o título (hoy solo hay la lista completa).
 
-**Dificultad 2 y letra por palabras.** Las dos se apoyan en la misma herramienta.
+**Dificultad 2 y letra por palabras.**
 
-- [ ] **Quitar la voz del cantante** (dificultad 2): con **Demucs** (`pip install demucs`, código abierto). Se procesa una vez por canción —minutos en CPU— y se guarda un tercer fichero hermano, `cancion-karaoke.mp3`. Luego `/audio/<id>` sirve uno u otro. Alternativa con ventana gráfica: Ultimate Vocal Remover.
-- [ ] **Letra palabra a palabra**: el formato ya existe, se llama **LRC mejorado** (`[00:13.76]<00:13.76>Esaiozu <00:14.31>euriari`). LRCLIB solo sirve nivel línea y los que tienen palabra a palabra son de pago, así que hay que generarlo: **alineación forzada** (dar audio + letra conocida y que calcule los tiempos) con **WhisperX**, sobre la pista de voz que saca Demucs.
-- Descartado: **sílabas**. Necesitaría alineación por fonemas (Montreal Forced Aligner) y diccionario por idioma. Los karaokes comerciales van por palabra y nadie echa de menos más.
-- Aviso: Whisper conoce el euskera pero flojo (idioma con pocos datos). En castellano o inglés saldrá bastante mejor.
+- [ ] **Quitar la voz del cantante**: con **Demucs**, `python -m demucs --two-stems=vocals <mp3>`. Genera `vocals.wav` y `no_vocals.wav`; el segundo es el instrumental. Guardarlo como `cancion-karaoke.mp3` y que `/audio/<id>` sirva uno u otro según el modo.
+- [ ] **Letra palabra a palabra**: el formato existe, se llama **LRC mejorado** (`[00:13.76]<00:13.76>palabra <00:14.31>siguiente`). Whisper ya devuelve marcas por palabra (`word_timestamps=True`), así que la base está. Con un 46% de acierto habría que apoyarse mucho en el marcador manual.
+- Descartado: **sílabas**. Necesitaría alineación por fonemas y diccionario por idioma. Los karaokes comerciales van por palabra y nadie echa de menos más.
+
+**Otras**
+
+- [ ] **Vídeos con la letra incrustada**: `<video>` tiene la misma API que `<audio>`, así que `karaoke.js` no cambiaría. Habría que glob `*.mp4`, elegir etiqueta en la plantilla y ocultar la letra propia. Los móviles no podrían seguirla (la letra va quemada en la imagen).
+- [ ] **El micro**: la monitorización de Windows tiene 50-200 ms de retardo, demasiado para cantar. La solución real es que la voz **no pase por el ordenador**: micro a un altavoz con entrada de micro, o interfaz USB con monitorización directa.
+
+---
+
+## Cosas que costaron sangre
+
+**Pantalla y mando.** Cada navegador es un cliente independiente: si cada móvil reproduce su copia del MP3, se desincronizan por buffering y latencia de altavoz. El oído detecta 30 ms como eco. Por eso **suena en un solo sitio** y los móviles solo pintan letra: **la letra perdona décimas, el audio no.**
+
+**El contador `version`.** Existe para que el móvil detecte una orden *nueva* aunque se repita la misma canción. Cuando cambia, el móvil hace `location.reload()` y el servidor regenera la letra entera — más tosco que repintar con JS, pero infalible.
+
+**`/latido` solo acepta latidos de la canción puesta.** Sin ese filtro, una pestaña vieja de `/cantar` abierta en cualquier sitio machaca el estado cada segundo. Y si `ESTADO["cancion"]` es `None` (pasa en **cada reinicio**, porque el estado vive en memoria), `/latido` adopta la canción que llegue y sube `version`; sin eso, tras guardar un fichero los latidos se rechazan para siempre y el karaoke se congela sin avisar.
+
+**`{cache: "no-store"}` en el `fetch` del móvil.** Los navegadores de móvil cachean agresivamente y sin eso `version` no cambia nunca.
+
+**El QR se calcula en cada visita.** La IP que imprime Flask al arrancar se escribe **una sola vez** y se queda obsoleta en cuanto cambias de red, suspendes el portátil o el router renueva la dirección. Comprobado a las malas en una fiesta: el banner decía `.135`, la IP real era `.131`.
+
+**Los ficheros de `static/` no pasan por Jinja.** Flask los sirve tal cual, así que las plantillas conservan un bloque `<script>` con los **datos** y el `.js` lleva **todo el comportamiento**.
+
+**`python -u` para las tandas largas.** Python no vuelca el log hasta llenar 8 KB de buffer; si el proceso muere, ese buffer se pierde y te quedas sin el mensaje de error. Dos tandas fallaron sin dejar rastro por esto.
+
+**Un fallo no puede tumbar una tanda.** Cada canción va dentro de un `try`. La primera versión perdió el trabajo de 50 canciones porque una reventó.
+
+**Baraja, no dado.** El azar puro repite canciones antes de que suenen todas. Se baraja la lista entera y se recorre; solo al agotarla se vuelve a barajar.
 
 ---
 
 ## Formato LRC
 
-Es el estándar de los karaokes desde los 90, y por eso las letras son portables a otros reproductores.
+El estándar de los karaokes desde los 90, y por eso las letras son portables a otros reproductores.
 
 ```
-[00:13.76]Esaiozu euriari berriz, ez jauzteko
-[00:20.12]esan bakardadeari gaur ez etortzeko
+[00:13.76]primera frase de la cancion
+[00:20.12]segunda frase
 [00:28.10]
 ```
 
-`[minutos:segundos.centésimas]` y detrás el texto. **Una línea con sello y sin texto marca un silencio** — es lo que hace que la última frase desaparezca de la pantalla en vez de quedarse congelada hasta el final de la canción.
+`[minutos:segundos.centésimas]` y detrás el texto. **Una línea con sello y sin texto marca un silencio** — es lo que hace que la última frase desaparezca de la pantalla en vez de quedarse congelada hasta el final.
+
+## Convenciones de los ficheros
+
+- Los MP3 se llaman `artista-titulo.mp3`: **minúsculas, guiones, sin acentos ni espacios**. Ese nombre es a la vez el identificador de la URL y la consulta que se manda a LRCLIB.
+- Comprobar que un `.mp3` lo es **de verdad**: las descargas de vídeo suelen ser MP4/M4A con la extensión cambiada. `convertir_a_mp3.py` los detecta por los primeros bytes y los convierte.
+- El `.gitignore` deja fuera el audio (`*.mp3`, `*.ogg`), los ficheros de trabajo (`*.lrc.old`, `*.lrc.nuevo`) y los registros. **Los `.lrc` sí se versionan**: ocupan nada y son trabajo tuyo.

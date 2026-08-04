@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcar {{ cancion }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="pagina marcador">
+    <div class="contenedor">
+
+        <p class="marca">Sincronizar a mano</p>
+        <h1 class="titulo-pagina">{{ cancion }}</h1>
+
+        <details class="panel instrucciones" open>
+            <summary>Cómo se usa</summary>
+
+            <p class="guia-titulo">Marcar los tiempos</p>
+            <ul class="guia">
+                <li>Dale al play y pulsa <span class="tecla">ESPACIO</span> justo cuando
+                    <strong>empiece a cantarse</strong> cada frase. Se guarda el instante
+                    y salta sola a la siguiente.</li>
+                <li><span class="tecla">&larr;</span> deshace la última, para cuando te pases.</li>
+                <li><span class="tecla">&darr;</span> salta una línea sin marcarla.</li>
+                <li><span class="tecla">R</span> borra todas las marcas y empieza de cero.</li>
+                <li>Pinchando en el <strong>número de tiempo</strong> de cualquier línea vuelves
+                    a ella, para retomar por el medio sin repetirlo todo.</li>
+            </ul>
+
+            <p class="guia-titulo">Corregir la letra</p>
+            <ul class="guia">
+                <li><strong>El texto es editable</strong>: pincha encima de una frase y escríbela bien.
+                    Mientras escribes, el <span class="tecla">ESPACIO</span> no marca tiempos.</li>
+                <li><span class="tecla">I</span> inserta una línea vacía donde estás y te deja el
+                    cursor dentro — para las frases que la letra descargada se dejó.</li>
+                <li>Los botones <strong>+</strong> y <strong>&times;</strong> de cada línea
+                    (aparecen al pasar el ratón) añaden una debajo o la quitan.</li>
+                <li>El botón <strong>«Añadir línea al final»</strong>, para las estrofas que
+                    falten al cierre.</li>
+            </ul>
+
+            <p class="guia-titulo">Dos cosas que conviene saber</p>
+            <ul class="guia">
+                <li><strong>Una línea sin texto es una marca de silencio.</strong> Márcala donde
+                    la voz calla y así la última frase desaparece de la pantalla en vez de
+                    quedarse congelada hasta el final de la canción.</li>
+                <li>Con la <strong>velocidad a 0,75x</strong> es mucho más fácil acertar. Los
+                    tiempos que se guardan son los reales de la canción, no los de la
+                    reproducción lenta.</li>
+            </ul>
+
+            <p class="pista" style="margin:.9rem 0 0">
+                Las líneas que dejes <strong>sin marcar</strong> no se guardan. Al terminar,
+                dale a <strong>Guardar</strong>: se reescribe la letra de esta canción.
+            </p>
+        </details>
+
+        <div class="barra-marcador">
+            <audio id="reproductor" controls preload="auto"
+                   src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
+            <span id="sello" class="sello">[00:00.00]</span>
+            <label class="pista velocidad">
+                velocidad
+                <select id="velocidad">
+                    <option value="0.75">0,75x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.25">1,25x</option>
+                </select>
+            </label>
+            <span class="pista" id="avance">0 de {{ lineas | length }} marcadas</span>
+        </div>
+
+        <!-- la lista la construye marcar.js, porque se pueden anadir y quitar lineas -->
+        <ol class="marcador-lista" id="lista"></ol>
+
+        <button class="boton fantasma" id="anadirFinal">+ Añadir línea al final</button>
+
+        <!-- el final del trabajo: guardar y salir a cantarla -->
+        <div class="panel cierre">
+            <div>
+                <p class="seccion" style="margin:0 0 .3rem">Cuando termines</p>
+                <p class="pista" style="margin:0">
+                    Se reescribe la letra de esta canción y pasas directo a cantarla.
+                </p>
+            </div>
+            <div class="acciones" style="margin:0">
+                <span class="pista" id="aviso"></span>
+                <button class="boton primario grande" id="guardar" disabled>Guardar y cantar</button>
+            </div>
+        </div>
+
+        <a class="volver" href="{{ url_for('editar', cancion_id=cancion) }}">&larr; Volver al editor</a>
+
+    </div>
+
+<script>
+    const CANCION = {{ cancion | tojson }};
+    const LINEAS  = {{ lineas | tojson }};
+</script>
+<script src="{{ url_for('static', filename='marcar.js') }}"></script>
+</body>
+</html>

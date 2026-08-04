@@ -6,7 +6,20 @@
 *.mp3
 *.ogg
 
-# Los .lrc SI se versionan: son trabajo tuyo y ocupan nada
+# Los .lrc SI se versionan: son trabajo tuyo y ocupan nada.
+# Pero NO los ficheros de trabajo del re-cronometrado:
+*.lrc.old
+*.lrc.nuevo
+*.viejo
+*.original
+*.convertido
+canciones/_originales/
+canciones/_aparcadas/
+
+# Registros y salidas de las tandas de sincronizacion
+*.log
+*.err
+informe_sincronizacion.txt
 
 # Basura de Python
 __pycache__/

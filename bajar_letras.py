@@ -30,8 +30,21 @@ for mp3 in sorted(CANCIONES.glob("*.mp3")):
         print(f"{mp3.stem} -> ya tiene letra")
         continue
 
-    duracion = MP3(mp3).info.length
-    resultados = buscar(mp3.stem.replace("-", " "))
+    # Un fichero que no sea MP3 de verdad (un MP4 con la extension cambiada,
+    # por ejemplo) hace saltar a mutagen. Sin este try, UNO malo tumba la tanda
+    # entera y se pierde todo el trabajo posterior.
+    try:
+        duracion = MP3(mp3).info.length
+    except Exception as e:
+        print(f"{mp3.stem} -> NO es un mp3 valido ({type(e).__name__})")
+        continue
+
+    try:
+        resultados = buscar(mp3.stem.replace("-", " "))
+    except Exception as e:
+        print(f"{mp3.stem} -> fallo la consulta a LRCLIB ({type(e).__name__})")
+        continue
+
     elegido = mejor(resultados, duracion)
 
     if elegido is None:

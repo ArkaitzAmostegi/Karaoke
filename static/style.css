@@ -8,7 +8,9 @@
 :root {
     --fondo:    #07060f;
     --acento:   #ffc24d;   /* ambar: la linea que toca, acciones principales */
+    --acento-1: #ae7100;
     --acento-2: #ff4d8d;   /* magenta: cantar */
+    --acento-3: #0f8000;   /* magenta: cantar */
     --proxima:  #737da0;
     --pasada:   #2b3050;
     --texto:    #eceffb;
@@ -295,7 +297,7 @@ body.escenario {
     font-weight: 700;
     letter-spacing: .38em;
     text-transform: uppercase;
-    color: #5d648a;
+    color: var(--acento-1)
 }
 .escenario header .titulo {
     margin: 0;
@@ -303,7 +305,7 @@ body.escenario {
     font-weight: 600;
     letter-spacing: .16em;
     text-transform: uppercase;
-    color: var(--tenue);
+    color: var(--acento-3);
 }
 
 .escenario main {
@@ -411,6 +413,181 @@ audio {
     color: var(--acento-2);
     border-color: rgba(255, 77, 141, .4);
     text-shadow: 0 0 24px rgba(255, 77, 141, .45);
+}
+
+/* =========================================================
+   SINCRONIZAR A MANO  (body class="pagina marcador")
+   ========================================================= */
+
+.marcador .contenedor { max-width: 900px; }
+
+.panel.instrucciones { display: block; }
+
+.panel.instrucciones summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--tenue);
+}
+.panel.instrucciones summary::marker,
+.panel.instrucciones summary::-webkit-details-marker { display: none; }
+.panel.instrucciones summary::after { content: "  —  clic para plegar"; opacity: .5; letter-spacing: 0; text-transform: none; }
+.panel.instrucciones:not([open]) summary::after { content: "  —  clic para desplegar"; }
+
+.guia-titulo {
+    margin: 1.1rem 0 .4rem;
+    color: var(--acento);
+    font-size: .85rem;
+    font-weight: 700;
+}
+.guia {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--tenue);
+    font-size: .88rem;
+    line-height: 1.75;
+}
+.guia strong { color: var(--texto); font-weight: 600; }
+.guia li { margin-bottom: .15rem; }
+
+/* el cierre del trabajo, al final de la letra */
+.panel.cierre {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    border-color: rgba(255, 77, 141, .3);
+}
+.boton.grande { padding: .8rem 1.6rem; font-size: 1rem; }
+.boton:disabled { opacity: .4; cursor: not-allowed; filter: none; }
+
+.tecla {
+    display: inline-block;
+    padding: .1em .5em;
+    border-radius: 6px;
+    background: #2a3150;
+    border-bottom: 2px solid #161b2e;
+    color: var(--texto);
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: .9em;
+    font-weight: 700;
+}
+
+.barra-marcador {
+    position: sticky;                 /* se queda arriba mientras bajas por la letra */
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: .9rem 1.1rem;
+    margin-bottom: 1rem;
+    background: rgba(12, 10, 26, .96);
+    border: 1px solid var(--linea);
+    border-radius: 14px;
+}
+.barra-marcador audio { flex: 1 1 260px; min-width: 220px; }
+.velocidad select {
+    margin-left: .4rem;
+    padding: .25rem .4rem;
+    background: var(--panel);
+    color: var(--texto);
+    border: 1px solid var(--linea);
+    border-radius: 6px;
+    font: inherit;
+    font-size: .85rem;
+}
+
+.marcador-lista {
+    list-style: none;
+    margin: 0 0 2rem;
+    padding: 0;
+    counter-reset: linea;
+}
+
+.marcador-linea {
+    display: flex;
+    align-items: baseline;
+    gap: .9rem;
+    padding: .5rem .8rem;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    color: var(--tenue);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+.marcador-linea:hover { background: rgba(255, 255, 255, .04); }
+
+.marcador-sello {
+    min-width: 9ch;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+    opacity: .55;
+}
+
+.marcador-texto {
+    flex: 1;
+    font-size: 1.02rem;
+    padding: .15rem .4rem;
+    margin: -.15rem -.4rem;
+    border-radius: 6px;
+    outline: none;
+    cursor: text;
+    min-height: 1.4em;
+}
+.marcador-texto:focus {
+    background: rgba(0, 0, 0, .45);
+    box-shadow: 0 0 0 2px rgba(255, 194, 77, .45);
+    color: var(--texto);
+}
+/* una linea vacia tiene que verse, si no parece que no esta */
+.marcador-texto:empty::before {
+    content: "(silencio, o escribe aqui)";
+    opacity: .35;
+    font-style: italic;
+}
+
+/* los botones de anadir y quitar, discretos hasta que pasas por encima */
+.mini {
+    flex: 0 0 auto;
+    width: 1.7rem;
+    height: 1.7rem;
+    padding: 0;
+    border: 1px solid var(--linea);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--tenue);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, color .15s, border-color .15s;
+}
+.marcador-linea:hover .mini,
+.marcador-linea.actual .mini { opacity: 1; }
+.mini:hover { color: var(--texto); border-color: var(--tenue); }
+
+/* ya marcada: se apaga, el trabajo esta hecho */
+.marcador-linea.marcada {
+    color: var(--texto);
+    border-left-color: rgba(61, 220, 151, .7);
+}
+.marcador-linea.marcada .marcador-sello { color: #3ddc97; opacity: 1; }
+
+/* la que toca marcar AHORA */
+.marcador-linea.actual {
+    background: rgba(255, 194, 77, .12);
+    border-left-color: var(--acento);
+    color: var(--acento);
+    font-weight: 600;
 }
 
 /* ---------- el QR para engancharse desde el movil ----------

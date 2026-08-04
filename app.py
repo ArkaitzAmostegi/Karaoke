@@ -130,6 +130,35 @@ def usar_letra(cancion_id, lrclib_id):
 
     return redirect(url_for("cantar", cancion_id=cancion_id))
 
+# Sincronizar a mano, marcando con el ESPACIO cuando entra cada frase.
+# Es la salida para las canciones que el reconocimiento automatico no puede
+# tocar (euskera) o donde se pierde. Una escucha y listo.
+@app.route("/marcar/<cancion_id>", methods=["GET", "POST"])
+def marcar(cancion_id):
+    ruta = CANCIONES / f"{cancion_id}.lrc"
+
+    if request.method == "POST":
+        datos = request.get_json()
+        lineas = datos["lineas"]          # los textos, en orden
+        tiempos = datos["tiempos"]        # el instante de cada uno (o null)
+
+        salida = []
+        for texto, t in zip(lineas, tiempos):
+            if t is None:                 # sin marcar: se queda sin sello
+                continue
+            salida.append("[%02d:%05.2f]%s" % (int(t // 60), t % 60, texto))
+
+        ruta.write_text("\n".join(salida), encoding="utf-8")
+        return {"ok": True, "lineas": len(salida)}
+
+    # GET: los textos del .lrc, sin sus tiempos (los vamos a rehacer)
+    lineas = [l["texto"] for l in leer_letra(cancion_id)]
+    if not lineas and ruta.exists():
+        lineas = [l for l in ruta.read_text(encoding="utf-8").splitlines() if l.strip()]
+
+    return render_template("marcar.html", cancion=cancion_id, lineas=lineas)
+
+
 # Ruta que devuelve un diccionario nos dice el estado
 @app.route("/estado")
 def estado():

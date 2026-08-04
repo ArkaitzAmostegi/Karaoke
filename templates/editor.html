@@ -19,6 +19,7 @@
             </p>
             <div class="buttons">
                 <a class="boton oro" href="{{ url_for('buscar_letra', cancion_id=cancion) }}">Buscar en internet</a>
+                <a class="boton fantasma" href="{{ url_for('marcar', cancion_id=cancion) }}">Sincronizar a mano</a>
                 <audio id="reproductor" controls src="{{ url_for('sonar', cancion_id=cancion) }}"></audio>
                 <span id="sello" class="sello" title="Tiempo exacto: haz clic para seleccionarlo entero">[00:00.00]</span>
             </div>
