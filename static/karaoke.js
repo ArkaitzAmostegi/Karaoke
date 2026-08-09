@@ -1,23 +1,28 @@
 /* =========================================================
-   KARAOKE ARAMAR — toda la logica del karaoke, en un sitio.
+    KARAOKE ARAMAR — toda la logica del karaoke, en un sitio.
 
-   Este fichero NO pasa por Jinja (los ficheros de static/ se sirven tal cual),
-   asi que los datos que solo sabe Python los recibe de la plantilla, que
-   define antes de cargarnos:
+    Este fichero NO pasa por Jinja (los ficheros de static/ se sirven tal cual),
+    asi que los datos que solo sabe Python los recibe de la plantilla, que
+    define antes de cargarnos:
 
-       MODO     "tele" o "movil"
-       LINEAS   [{tiempo, texto}, ...]
-       CANCION  el identificador de la cancion (null en el movil si no hay)
-       VERSION  solo en el movil: la version del estado al cargar la pagina
+        MODO     "tele" o "movil"
+        LINEAS   [{tiempo, texto}, ...]
+        CANCION  el identificador de la cancion (null en el movil si no hay)
+        VERSION  solo en el movil: la version del estado al cargar la pagina
 
-   La tele MANDA (reproduce y avisa por donde va).
-   El movil ESCUCHA (pregunta y pinta, sin audio).
+    La tele MANDA (reproduce y avisa por donde va).
+    El movil ESCUCHA (pregunta y pinta, sin audio).
    ========================================================= */
 
 const ELEMENTOS   = document.querySelectorAll(".linea");
 const cuentaAtras = document.getElementById("cuentaAtras");
 
 const AVISO = 9;        // si faltan menos de estos segundos para la siguiente frase, se cuenta
+
+// Poner en true para volver a ver la cuenta atras antes de cada frase.
+// El <div> sigue existiendo aunque esto este en false, porque el modo a
+// tutiplen lo reutiliza para el descanso y para el aviso de arranque.
+const MOSTRAR_CUENTA = false;
 
 let anterior = -1;       // que linea estaba marcada la ultima vez que pintamos
 
@@ -36,10 +41,14 @@ function pintar(t) {
         }
     }
 
-    // 2. la siguiente linea CON letra (puede haber varios silencios seguidos)
+    // 2. la siguiente linea CON letra que AUN NO ha sonado.
+    //    Se busca por TIEMPO, no a partir de "indice": el resaltado se adelanta
+    //    a proposito (el + 1 de arriba), y si la cuenta atras colgara de el,
+    //    daria por pasada la frase un segundo antes y saltaria a contar la
+    //    siguiente sin llegar nunca a cero.
     let siguiente = -1;
-    for (let i = indice + 1; i < LINEAS.length; i++) {
-        if (LINEAS[i].texto.trim() !== "") {
+    for (let i = 0; i < LINEAS.length; i++) {
+        if (LINEAS[i].tiempo > t && LINEAS[i].texto.trim() !== "") {
             siguiente = i;
             break;
         }
@@ -51,12 +60,16 @@ function pintar(t) {
         indice = -1;                     // que no se ilumine ninguna
     }
 
-    // 4. cuanto falta para la siguiente frase; si es menos de AVISO, se cuenta
-    cuentaAtras.textContent = "";
-    if (siguiente >= 0) {
-        const falta = LINEAS[siguiente].tiempo - t;
-        if (falta > 0 && falta <= AVISO) {
-            cuentaAtras.textContent = Math.ceil(falta);
+    // 4. cuanto falta para esa frase; si es menos de AVISO, se cuenta.
+    //    Cuenta hasta el final: el "1" se ve durante todo el ultimo segundo y
+    //    solo desaparece cuando la frase empieza de verdad.
+    if (MOSTRAR_CUENTA) {
+        cuentaAtras.textContent = "";
+        if (siguiente >= 0) {
+            const falta = LINEAS[siguiente].tiempo - t;
+            if (falta <= AVISO) {
+                cuentaAtras.textContent = Math.ceil(falta);
+            }
         }
     }
 
